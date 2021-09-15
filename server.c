@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <string.h>
+#include <inttypes.h>
 
 // Note compile on the linux sever
 
@@ -57,9 +59,17 @@ int main(int argc, char *argv[])
 
   // -1 is error message
   int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-
-  printf("%d\n", count);
-  printf("%d\n", recievedMessage);
+  printf("\n %d\n", count);
+  uint8_t q;
+  uint64_t start,end;
+  memcpy(&start,&(recievedMessage[32]),8);
+  memcpy(&end,&(recievedMessage[40]),8);
+  memcpy(&q,&(recievedMessage[48]),1);
+  start = be64toh(start);
+  end = be64toh(end);
+  printf("%" PRIu64 "\n", start);
+  printf("%" PRIu64 "\n", end);
+  printf("%hhu\n", q);
 
   
 
@@ -70,3 +80,4 @@ int main(int argc, char *argv[])
   close(sockfd);
   return 0;
 }
+
