@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   }
 
 
-  int sockfd, clientfd;
+  int sockfd;
   struct sockaddr_in serverAddr, cliAddr;
   socklen_t addr_size;
   int len = sizeof(cliAddr);
@@ -47,37 +47,44 @@ int main(int argc, char *argv[])
   bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
 
   // listen
-  if (listen(sockfd, 5) == 0)
+  listen(sockfd, 5);
+  while (1) {
+    int clientfd;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(struct sockaddr_in);    
+
     //accept the connection
     clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
+    
+
+    /// Recieving Component /// 
+
+    char recievedMessage[49];
 
 
-   /// Recieving Component /// 
-
-  char recievedMessage[49];
-
-
-  // -1 is error message
-  int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-  printf("\n %d\n", count);
-  uint8_t q;
-  uint64_t start,end;
-  memcpy(&start,&(recievedMessage[32]),8);
-  memcpy(&end,&(recievedMessage[40]),8);
-  memcpy(&q,&(recievedMessage[48]),1);
-  start = be64toh(start);
-  end = be64toh(end);
-  printf("%" PRIu64 "\n", start);
-  printf("%" PRIu64 "\n", end);
-  printf("%hhu\n", q);
+    // -1 is error message
+    int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
+    printf("\n %d\n", count);
+    uint8_t q;
+    uint64_t start,end;
+    memcpy(&start,&(recievedMessage[32]),8);
+    memcpy(&end,&(recievedMessage[40]),8);
+    memcpy(&q,&(recievedMessage[48]),1);
+    start = be64toh(start);
+    end = be64toh(end);
+    printf("%" PRIu64 "\n", start);
+    printf("%" PRIu64 "\n", end);
+    printf("%hhu\n", q);
 
   
 
-  // send the data
-  char severMessage[8] = "nope";
-  send(clientfd, severMessage, sizeof(severMessage), 0);
+    // send the data
+    char severMessage[8] = "nope";
+    send(clientfd, severMessage, sizeof(severMessage), 0);
+  }
 
   close(sockfd);
   return 0;
 }
+
 
