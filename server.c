@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <inttypes.h>
-
+#include <openssl/sha.h>
 // Note compile on the linux sever
 
 #define SERVER "REEL-OS"
@@ -65,22 +65,40 @@ int main(int argc, char *argv[])
     // -1 is error message
     int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
     printf("\n %d\n", count);
+    uint8_t hash_be[32];
     uint8_t q;
     uint64_t start,end;
+    memcpy(hash_be,recievedMessage,32);
     memcpy(&start,&(recievedMessage[32]),8);
     memcpy(&end,&(recievedMessage[40]),8);
     memcpy(&q,&(recievedMessage[48]),1);
+    uint8_t hash_host[32];
+    for(int i =0; i< 32; i++){
+	hash_host[i] = hash_be[32-i-1];
+    }
     start = be64toh(start);
     end = be64toh(end);
     printf("%" PRIu64 "\n", start);
     printf("%" PRIu64 "\n", end);
     printf("%hhu\n", q);
-
-  
+    uint64_t result;
+    for(uint64_t test = 0; test < (start+end); test++){
+	uint8_t hash_test[32];
+	SHA256((unsigned char *)test, 8, hash_test);
+	int found = 0;
+	for(int i=0;i<32;i++){
+	    if(hash_test[i]!=hash_host[i]) break;
+	    else if (i==31) found = 1;
+	    else continue;
+	}
+	if(found==1){
+	    result = test;
+	    break;
+	}
+    } 
 
     // send the data
-    char severMessage[8] = "nope";
-    send(clientfd, severMessage, sizeof(severMessage), 0);
+    send(clientfd, &result, sizeof(uint64_t), 0);
   }
 
   close(sockfd);
