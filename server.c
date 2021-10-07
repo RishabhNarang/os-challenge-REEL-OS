@@ -55,12 +55,9 @@ int main(int argc, char *argv[])
     // listen
     listen(sockfd, 5);
 
-    // Message count is simple used to help with debugging and reading out messages
-    unsigned int messageCount = 0;
-
     while (1)
     {
-        messageCount++;
+
 
         int clientfd;
         struct sockaddr_in client_addr;
@@ -74,7 +71,7 @@ int main(int argc, char *argv[])
 
         // -1 is error message
         int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-        printf("Bytes Recieved: %d\n", count);
+        /*printf("Bytes Recieved: %d\n", count);*/
 
         // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
         unsigned char hash[32];
@@ -99,14 +96,13 @@ int main(int argc, char *argv[])
         start = be64toh(start);
         end = be64toh(end);
 
-        printf("Start value: %" PRIu64 "\n", start);
-        printf("End value: %" PRIu64 "\n", end);
-        printf("Priority: %d\n", q);
+        //printf("Start value: %" PRIu64 "\n", start);
+        //printf("End value: %" PRIu64 "\n", end);
+        //printf("Priority: %d\n", q);
 
         uint64_t result;
         Process(hash, &start, &end, &result);
 
-        printf("Message: %d\n", messageCount);
         printf("\t\b\b Answer: %d \n", result);
 
         // Switch from little endian to big endian for network
@@ -137,9 +133,7 @@ void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, ui
 
     for (uint64_t i = *start; i < *end; i++)
     {
-
         //printf("Check value: %d \n", i);
-
         /*
             Parameter explanation:
                 0: Pointer to the value that is being hashed
