@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
         uint64_t result;
         Process(hash, &start, &end, &result);
 
-        printf("\t\b\b Answer: %d \n", result);
+        //printf("\t\b\b Answer: %d \n", result);
 
         // Switch from little endian to big endian for network
         result = htobe64(result);
