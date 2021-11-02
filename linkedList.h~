@@ -1,0 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <inttypes.h>
+#include <malloc.h>
+
+/A requestnode of the double linked list

@@ -79,11 +79,20 @@ void heapify(maxHeap* mh, int i) {
 requestNode extractMax(maxHeap* mh) {
 
 	requestNode maxRN = mh->elem[0];
-
 	mh->elem[0] = mh->elem[--(mh->heapSize)];
 	mh->elem = (requestNode *)realloc(mh->elem, mh->heapSize * sizeof(requestNode));
 	heapify(mh, 0);
-
+		
 	return maxRN;
+}
+
+void printPriorities(maxHeap* mh) {
+
+	printf("Heap priorities: ");
+	
+	for(int i=0; i<30; i++) {
+		printf("%d ", mh->elem[i].priority);
+	}
+
 }
 
