@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
 
     // listen
-    listen(sockfd, 5);
+    listen(sockfd, 1000);
 
 
     // new max heap
