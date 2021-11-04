@@ -8,118 +8,33 @@
 #include <inttypes.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
+#include "maxHeap.h" //max heap implementation of priority queue
 
-//// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
+// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
 
 
 // Note compile on the linux sever
 // Assumption that we are using openssl 1.1.1
 #define SERVER "REEL-OS"
 
-int main(int argc, char *argv[])
+int HashCompare(const uint8_t *hash, const unsigned char *hashResult)
 {
 
-    /*  /// Exepected Arguments ///
-        argv[0]   -- script name
-        argv[1]   -- port # 
+    /*
+        Simple O(n) comparison 
     */
 
-    unsigned int port;
-
-    if (argc >= 2)
+    for (unsigned int i = 0; i < 32; i++)
     {
-        // Get the port number from the command-line arguments
-        port = atoi(argv[1]);
-    }else{
-
-        // Throw an error if we don't have enough arguments for the script
-        return 1;
+        if (hash[i] != hashResult[i])
+        {
+            return 1;
+        }
     }
-
-    int sockfd;
-    struct sockaddr_in serverAddr, cliAddr;
-    socklen_t addr_size;
-    int len = sizeof(cliAddr);
-
-    //create a socket file descriptor
-    sockfd = socket(PF_INET, SOCK_STREAM, 0);
-
-    //fill the serverAddr structure
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-
-    // bind the address
-    bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
-
-    // listen
-    listen(sockfd, 5);
-
-    while (1)
-    {
-
-
-        int clientfd;
-        struct sockaddr_in client_addr;
-        socklen_t client_addr_len = sizeof(struct sockaddr_in);
-
-        //accept the connection
-        clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
-
-        /// Recieving Component ///
-        char recievedMessage[49];
-
-        // -1 is error message
-        int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-        /*printf("Bytes Recieved: %d\n", count);*/
-
-        // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
-        unsigned char hash[32];
-        uint64_t start, end;
-        uint8_t q;
-
-        memcpy(&hash, &(recievedMessage[0]), 32);
-        memcpy(&start, &(recievedMessage[32]), 8);
-        memcpy(&end, &(recievedMessage[40]), 8);
-        memcpy(&q, &(recievedMessage[48]), 1);
-
-
-        /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
-            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
-
-        //PrintArray(hash, 32);
-        //be64tohArray(hash, 32);
-
-        // printf("Printing hash: \n");
-        // PrintCharArray(hash, 32);
-
-        start = be64toh(start);
-        end = be64toh(end);
-
-        //printf("Start value: %" PRIu64 "\n", start);
-        //printf("End value: %" PRIu64 "\n", end);
-        //printf("Priority: %d\n", q);
-
-        uint64_t result;
-        Process(hash, &start, &end, &result);
-
-        //printf("\t\b\b Answer: %d \n", result);
-
-        // Switch from little endian to big endian for network
-        result = htobe64(result);
-
-
-        // Send message to client
-        send(clientfd, &result, sizeof(result), 0);
-
-
-        // || Is it possible to make a check so we can properly exit this loop and close the socket || //
-    }
-
-    close(sockfd);
+    
+    // Zero means everything matches
     return 0;
 }
-
 void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, uint64_t *result)
 {
 
@@ -212,21 +127,123 @@ void PrintCharArray(const unsigned char *arr, const size_t len)
 }
 
 
-int HashCompare(const uint8_t *hash, const unsigned char *hashResult)
+int main(int argc, char *argv[])
 {
 
-    /*
-        Simple O(n) comparison 
+    /*  /// Exepected Arguments ///
+        argv[0]   -- script name
+        argv[1]   -- port # 
     */
 
-    for (unsigned int i = 0; i < 32; i++)
+    unsigned int port;
+
+    if (argc >= 2)
     {
-        if (hash[i] != hashResult[i])
-        {
-            return 1;
-        }
+        // Get the port number from the command-line arguments
+        port = atoi(argv[1]);
+    }else{
+
+        // Throw an error if we don't have enough arguments for the script
+        return 1;
+    }
+
+    int sockfd;
+    struct sockaddr_in serverAddr, cliAddr;
+    socklen_t addr_size;
+    int len = sizeof(cliAddr);
+
+    //create a socket file descriptor
+    sockfd = socket(PF_INET, SOCK_STREAM, 0);
+
+    //fill the serverAddr structure
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+    // bind the address
+    bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+
+    // listen
+    listen(sockfd, 5);
+
+
+    // new max heap
+    maxHeap mh = initMaxHeap();
+  
+
+    while (1) {
+
+
+        int clientfd;
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(struct sockaddr_in);
+
+        //accept the connection
+        clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
+
+        /// Recieving Component ///
+        char recievedMessage[49];
+
+        // -1 is error message
+        int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
+        /*printf("Bytes Recieved: %d\n", count);*/
+
+        // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
+        unsigned char hash[32];
+        uint64_t start, end;
+        uint8_t q;
+
+        memcpy(&hash, &(recievedMessage[0]), 32);
+        memcpy(&start, &(recievedMessage[32]), 8);
+        memcpy(&end, &(recievedMessage[40]), 8);
+        memcpy(&q, &(recievedMessage[48]), 1);
+
+
+        /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
+            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
+
+        //PrintArray(hash, 32);
+        //be64tohArray(hash, 32);
+
+        //printf("Printing hash: \n");
+        //PrintCharArray(hash, 32);
+
+        start = be64toh(start);
+        end = be64toh(end);
+
+        //printf("Start value: %" PRIu64 "\n", start);
+        //printf("End value: %" PRIu64 "\n", end);
+        //printf("Priority: %d\n", q);
+
+        //create new request node and insert into max heap
+        requestNode rn = { .hash = hash, .start = start, .end = end, .priority = q};
+	insert(&mh, rn); //mh.elem[0] is request with highest priority     
+
+  
+        // extract request with highest priority and remove it from max-heap
+	//requestNode maxPriorityRequest = extractMax(&mh); 
+	
+
+        uint64_t result;
+        Process(hash, &start, &end, &result);
+
+        printf("\t\b\b Answer: %d \n", result);
+
+        // Switch from little endian to big endian for network
+        result = htobe64(result);
+
+
+        // Send message to client
+        send(clientfd, &result, sizeof(result), 0);
+
+       
+        
+	// || Is it possible to make a check so we can properly exit this loop and close the socket || //
     }
     
-    // Zero means everything matches
+    close(sockfd);
+
+    
     return 0;
 }
+
