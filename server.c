@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
+#include <pthread.h>
 
 //// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
 
@@ -15,7 +16,7 @@
 // Note compile on the linux sever
 // Assumption that we are using openssl 1.1.1
 #define SERVER "REEL-OS"
-
+void * socketThread(void *arg);
 int main(int argc, char *argv[])
 {
 
@@ -53,8 +54,9 @@ int main(int argc, char *argv[])
     bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
 
     // listen
-    listen(sockfd, 5);
-
+    listen(sockfd, 1000);
+    pthread_t tid[100];
+    int i=0;
     while (1)
     {
 
@@ -65,59 +67,108 @@ int main(int argc, char *argv[])
 
         //accept the connection
         clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
+	if (clientfd<0)
+	{
+	    printf("Accept failed with i = %d \n", i);
+	    continue;
+	}
+	printf("Serving the request with i = %d \n",i);
+	int* clientFdPtr = (int*)malloc(sizeof(int));
+	*clientFdPtr = clientfd;	
+	if( pthread_create(&tid[i++], NULL, socketThread, clientFdPtr) != 0 )
+           printf("Failed to create thread\n");
 
-        /// Recieving Component ///
-        char recievedMessage[49];
+	//if( i >= 100)
+        //{
+          //i = 0;
+          //while(i < 100)
+          //{
+            //pthread_join(tid[i++],NULL);
+          //}
+          //i = 0;
+        //}
 
-        // -1 is error message
-        int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-        /*printf("Bytes Recieved: %d\n", count);*/
-
-        // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
-        unsigned char hash[32];
-        uint64_t start, end;
-        uint8_t q;
-
-        memcpy(&hash, &(recievedMessage[0]), 32);
-        memcpy(&start, &(recievedMessage[32]), 8);
-        memcpy(&end, &(recievedMessage[40]), 8);
-        memcpy(&q, &(recievedMessage[48]), 1);
-
-
-        /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
-            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
-
-        //PrintArray(hash, 32);
-        //be64tohArray(hash, 32);
-
-        // printf("Printing hash: \n");
-        // PrintCharArray(hash, 32);
-
-        start = be64toh(start);
-        end = be64toh(end);
-
-        //printf("Start value: %" PRIu64 "\n", start);
-        //printf("End value: %" PRIu64 "\n", end);
-        //printf("Priority: %d\n", q);
-
-        uint64_t result;
-        Process(hash, &start, &end, &result);
-
-        //printf("\t\b\b Answer: %d \n", result);
-
-        // Switch from little endian to big endian for network
-        result = htobe64(result);
-
-
-        // Send message to client
-        send(clientfd, &result, sizeof(result), 0);
-
-
-        // || Is it possible to make a check so we can properly exit this loop and close the socket || //
     }
 
     close(sockfd);
     return 0;
+}
+
+
+void * socketThread(void *arg)
+{
+    int clientfd = *((int *)arg);
+    printf("Inside the thread for fd = %d \n",clientfd);
+    //recv(newSocket , client_message , 2000 , 0);
+    // Send message to the client socket
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /// Recieving Component ///
+    char recievedMessage[49];
+
+    // -1 is error message
+    int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
+    if(count == 0)
+    {
+	printf("Client disconnected with fd = %d \n", clientfd);
+    }
+    else if(count == -1)
+    {
+	printf("recv failed with fd = %d \n", clientfd);
+    }
+    /*printf("Bytes Recieved: %d\n", count);*/
+
+    // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
+    unsigned char hash[32];
+    uint64_t start, end;
+    uint8_t q;
+
+    memcpy(&hash, &(recievedMessage[0]), 32);
+    memcpy(&start, &(recievedMessage[32]), 8);
+    memcpy(&end, &(recievedMessage[40]), 8);
+    memcpy(&q, &(recievedMessage[48]), 1);
+
+
+    /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
+            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
+
+    //PrintArray(hash, 32);
+
+    //PrintArray(hash, 32);
+    //be64tohArray(hash, 32);
+
+    // printf("Printing hash: \n");
+    // PrintCharArray(hash, 32);
+
+    start = be64toh(start);
+    end = be64toh(end);
+
+    //printf("Start value: %" PRIu64 "\n", start);
+    //printf("End value: %" PRIu64 "\n", end);
+    //printf("Priority: %d\n", q);
+
+    uint64_t result;
+    Process(hash, &start, &end, &result);
+
+    //printf("\t\b\b Answer: %d \n", result);
+
+    // Switch from little endian to big endian for network
+    result = htobe64(result);
+
+
+    // Send message to client
+    int bytes_sent = send(clientfd, &result, sizeof(result), 0);
+    if(bytes_sent < 0){
+	printf("Failed to send the result to fd = %d \n", clientfd);
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+
+    printf("Finished the thread for fd = %d \n",clientfd);
+    //send(newSocket,buffer,13,0);
+    //printf("Exit socketThread \n");
+    close(clientfd);
+    pthread_exit(NULL);
 }
 
 void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, uint64_t *result)
