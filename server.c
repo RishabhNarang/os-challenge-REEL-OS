@@ -8,16 +8,15 @@
 #include <inttypes.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
+#include <sys/mman.h>
+#include "maxHeap.h"
+#include "queue.h"
 
-//// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
-
-
-// Note compile on the linux sever
-// Assumption that we are using openssl 1.1.1
 #define SERVER "REEL-OS"
 
-int main(int argc, char *argv[])
-{
+size_t* current_process_count;
+
+int main(int argc, char *argv[]){
 
     /*  /// Exepected Arguments ///
         argv[0]   -- script name
@@ -53,11 +52,26 @@ int main(int argc, char *argv[])
     bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
 
     // listen
-    listen(sockfd, 5);
+    listen(sockfd, 256);
 
-    while (1)
-    {
+    struct maxHeap request_queue = initMaxHeap(); 
 
+    #pragma region // Multi-Process related variables
+
+        const size_t MAX_PROCESS_COUNT = 100; // If this doens't work just put 100 instead (rlimit_nproc)
+        current_process_count = mmap(NULL, sizeof(size_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS , -1, 0);
+        *current_process_count = 0;
+
+        // Share process count with 
+        
+
+        const pid_t parentPID = getpid();
+
+    #pragma endregion
+
+    size_t messsageCount = 0;
+
+    while(1){
 
         int clientfd;
         struct sockaddr_in client_addr;
@@ -66,6 +80,8 @@ int main(int argc, char *argv[])
         //accept the connection
         clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
 
+
+        // Check if messaged was received and in the buffer, if in the buffer than add to the queue
         /// Recieving Component ///
         char recievedMessage[49];
 
@@ -74,50 +90,108 @@ int main(int argc, char *argv[])
         /*printf("Bytes Recieved: %d\n", count);*/
 
         // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
-        unsigned char hash[32];
         uint64_t start, end;
-        uint8_t q;
+        uint8_t priority;
+        unsigned char hash[32];
 
-        memcpy(&hash, &(recievedMessage[0]), 32);
-        memcpy(&start, &(recievedMessage[32]), 8);
-        memcpy(&end, &(recievedMessage[40]), 8);
-        memcpy(&q, &(recievedMessage[48]), 1);
+        // Check if message was recieved
+        if(count != -1){
+            //printf("Message was recieved: %ld \n", messsageCount);
+            messsageCount++;
 
+            requestNode node;
 
-        /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
-            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
+            memcpy(&node.hash, &(recievedMessage[0]), 32);
+            memcpy(&start, &(recievedMessage[32]), 8);
+            memcpy(&end, &(recievedMessage[40]), 8);
+            memcpy(&priority, &(recievedMessage[48]), 1);
 
-        //PrintArray(hash, 32);
-        //be64tohArray(hash, 32);
+            node.start = be64toh(start);
+            node.end = be64toh(end);
+            node.priority = be64toh(priority);
 
-        // printf("Printing hash: \n");
-        // PrintCharArray(hash, 32);
+            // printf("Message recieved -> \n");
+            // printf("Start: %ld End: %ld \n Hash: \n", node.start, node.end);
+            // PrintCharArray(node.hash, 32);
+            // printf("\n");
 
-        start = be64toh(start);
-        end = be64toh(end);
+            insert(&request_queue, node);
+        }
+        
+        if(*current_process_count < MAX_PROCESS_COUNT && request_queue.heapSize > 0){
+            //printf("Child number {%d} \n", *current_process_count);
+            ForkChild(&request_queue, clientfd);
+            *current_process_count += 1;
+        }else{
+            //printf("Max child count met\n");
+            int child_status;
+            //waitpid(pd, &child_status, 0);
+            wait(&child_status);
 
-        //printf("Start value: %" PRIu64 "\n", start);
-        //printf("End value: %" PRIu64 "\n", end);
-        //printf("Priority: %d\n", q);
+            //printf("Child finished with status {%i}\n", child_status);
 
-        uint64_t result;
-        Process(hash, &start, &end, &result);
+            if(child_status == -1)
+                printf("Child returned with an error");
+                continue;
 
-        //printf("\t\b\b Answer: %d \n", result);
-
-        // Switch from little endian to big endian for network
-        result = htobe64(result);
-
-
-        // Send message to client
-        send(clientfd, &result, sizeof(result), 0);
-
-
-        // || Is it possible to make a check so we can properly exit this loop and close the socket || //
+            ForkChild(&request_queue, clientfd);
+            *current_process_count += 1;
+            // Run fork again and other process
+        }
+        // || Is it possible to make a check so we can properly exit this loop and close the socket? || //
     }
-
     close(sockfd);
     return 0;
+}
+
+/// Forks and creates a child ///
+void ForkChild(struct maxHeap *request_queue, int clientfd){
+    //printf("Child was created \n");
+    
+    requestNode currentRequest = extractMax(request_queue);
+
+    pid_t pd = fork();
+
+    if(pd == -1){
+        printf("Fork failed\n");
+        // Add current request back to queue
+        insert(request_queue, currentRequest);
+    }else if(pd == 0){
+        // The entire child process
+
+        clock_t start = clock();
+        /*Do something*/
+        
+
+        uint64_t result;
+        uint64_t leresult;
+
+        // Does the child actually have the correct information to do the calculation?
+        // printf("Child %ld has the following data: \n", getpid());
+        // printf("Start: %ld End: %ld \n Hash: \n", currentRequest.start, currentRequest.end);
+        // PrintCharArray(currentRequest.hash, 32);
+
+        Process(currentRequest.hash, &currentRequest.start, &currentRequest.end, &result);
+        // printf("Result: %ld \n", result);
+        leresult = result;
+        result = htobe64(result);
+
+        int sendBytes = send(clientfd, &result, sizeof(result), 0);
+        if(sendBytes == -1)
+            printf("Send failed \n");
+
+        
+        clock_t end = clock();
+        float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+
+        printf("Message sent: Elasped Time: %d  Result: %"PRId64"\n", seconds, leresult);
+
+        *current_process_count -= 1;
+        //printf("Child number {%d} \n", *current_process_count);
+        exit(0);
+    }else{
+        // Parents code, do nothing
+    }
 }
 
 void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, uint64_t *result)
@@ -186,9 +260,6 @@ void be64tohArray(uint8_t *arr, size_t len)
     }
 }
 
-
-
-
 void PrintArray(const uint8_t *arr, const size_t len)
 {
     // Prints out uint8_t array
@@ -210,7 +281,6 @@ void PrintCharArray(const unsigned char *arr, const size_t len)
 
     printf("\n");
 }
-
 
 int HashCompare(const uint8_t *hash, const unsigned char *hashResult)
 {
