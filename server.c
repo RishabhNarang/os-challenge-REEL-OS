@@ -9,21 +9,17 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <pthread.h>
+#include "maxHeap.h" //max heap implementation of priority queue
 
-//// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
+// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
 
 
 // Note compile on the linux sever
 // Assumption that we are using openssl 1.1.1
 #define SERVER "REEL-OS"
-void * socketThread(void *arg);
-int main(int argc, char *argv[])
-{
 
-    /*  /// Exepected Arguments ///
-        argv[0]   -- script name
-        argv[1]   -- port # 
-    */
+void * socketThread(void *arg);
+int main(int argc, char *argv[]){
 
     unsigned int port;
 
@@ -170,7 +166,6 @@ void * socketThread(void *arg)
     close(clientfd);
     pthread_exit(NULL);
 }
-
 void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, uint64_t *result)
 {
 
@@ -261,8 +256,6 @@ void PrintCharArray(const unsigned char *arr, const size_t len)
 
     printf("\n");
 }
-
-
 int HashCompare(const uint8_t *hash, const unsigned char *hashResult)
 {
 
