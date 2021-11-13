@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         //printf("Priority: %d\n", q);
 
         //create new request node and insert into max heap
-        requestNode rn = { .hash = hash, .start = start, .end = end, .priority = q};
+        requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q};
 	insert(&mh, rn); //mh.elem[0] is request with highest priority     
 
   
