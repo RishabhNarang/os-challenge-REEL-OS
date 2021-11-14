@@ -1,3 +1,5 @@
+#define NULL 0
+
 struct nlist { /* table entry: */
     struct nlist *next; /* next entry in chain */
     char *name; /* defined name */
