@@ -6,7 +6,7 @@ struct nlist { /* table entry: */
     char *defn; /* replacement text */
 };
 
-#define HASHSIZE 101
+#define HASHSIZE 1001
 static struct nlist *hashtab[HASHSIZE]; /* pointer table */
 
 /* hash: form hash value for string s */
@@ -55,4 +55,15 @@ char *strdup(char *s) /* make a duplicate of s */
     if (p != NULL)
        strcpy(p, s);
     return p;
+}
+
+void main(){
+    unsigned char name[] = "test";
+    int x = 20;
+    /*char defn[] = "test1";*/
+    char *val = &x;
+    printf(val);
+    install(name,val);
+    struct nlist *res= lookup("test");
+    printf("%s %s",res->name,res->defn);
 }
