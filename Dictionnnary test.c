@@ -62,7 +62,6 @@ void main(){
     int x = 20;
     /*char defn[] = "test1";*/
     char *val = &x;
-    printf(val);
     install(name,val);
     struct nlist *res= lookup("test");
     printf("%s %s",res->name,res->defn);
