@@ -229,8 +229,7 @@ int main(int argc, char *argv[])
 	printf("Printing hash: (after requestNode rn = { memcpy(rn.hash, h..) \n");
 	PrintCharArray(rn.hash, 32); 
 	printf("\n");*/
-
-	insert(&mh, rn);      
+    
       	
 
 	// if-statement & while-loop only for maxHeap-experiment
