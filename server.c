@@ -219,9 +219,9 @@ int main(int argc, char *argv[])
 
         //create new request node and insert into max heap
 
-        requestNode rn = { memcpy(rn.hash, hash, 32), .start = start, .end = end, .priority = q , .clientfd = clientfd};         
+        requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q , .clientfd = clientfd};         
 
-        requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q};
+        
 	insert(&mh, rn); //mh.elem[0] is request with highest priority     
 
 
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
       	
 
 	// if-statement & while-loop only for maxHeap-experiment
-	if(mh.heapSize == 1) { 
+	if(mh.heapSize == 100) { 
 
 		printf("\n"); 
 		while(mh.heapSize > 0) { 
