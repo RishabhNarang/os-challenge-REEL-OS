@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
     listen(sockfd, 1000);
     pthread_t tid[1000];
     //////////////////////////////////////////////////////////
-    int num_worker_threads = 4;
+    int num_worker_threads = 20;
     pthread_t workers[num_worker_threads];
     sem_init(&count_request_not_assigned, 0, 0);
     if (pthread_mutex_init(&queue_lock, NULL) != 0) {
