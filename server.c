@@ -218,7 +218,12 @@ int main(int argc, char *argv[])
 
 
         //create new request node and insert into max heap
+
         requestNode rn = { memcpy(rn.hash, hash, 32), .start = start, .end = end, .priority = q , .clientfd = clientfd};         
+
+        requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q};
+	insert(&mh, rn); //mh.elem[0] is request with highest priority     
+
 
 	/*
 	printf("Printing hash: (after requestNode rn = { memcpy(rn.hash, h..) \n");
