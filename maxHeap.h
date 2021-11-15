@@ -11,10 +11,11 @@
 
 
 typedef struct requestNode {
-	unsigned char hash[32];
+	unsigned char hash[32]; 
 	uint64_t start;
 	uint64_t end;
 	uint8_t priority;
+	int clientfd;
 } requestNode;
 
 
@@ -78,19 +79,21 @@ void heapify(maxHeap* mh, int i) {
 // Function: extract requestNode with highest priority and remove it from heap
 requestNode extractMax(maxHeap* mh) {
 
-	requestNode maxRN = mh->elem[0];
-	mh->elem[0] = mh->elem[--(mh->heapSize)];
-	mh->elem = (requestNode *)realloc(mh->elem, mh->heapSize * sizeof(requestNode));
-	heapify(mh, 0);
-		
+	
+		requestNode maxRN = mh->elem[0];
+		mh->elem[0] = mh->elem[--(mh->heapSize)];
+		mh->elem = (requestNode *)realloc(mh->elem, mh->heapSize * sizeof(requestNode));
+		heapify(mh, 0);
+	 
+
 	return maxRN;
 }
 
 void printPriorities(maxHeap* mh) {
 
-	printf("Heap priorities: ");
+	printf("Heap priorities : ");
 	
-	for(int i=0; i<30; i++) {
+	for(int i=0; i<mh->heapSize; i++) {
 		printf("%d ", mh->elem[i].priority);
 	}
 
