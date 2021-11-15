@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
       	
 
 	// if-statement & while-loop only for maxHeap-experiment
-	if(mh.heapSize == 100) { 
+	if(mh.heapSize == 1000) { 
 
 		printf("\n"); 
 		while(mh.heapSize > 0) { 
