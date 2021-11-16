@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
     listen(sockfd, 1000);
     pthread_t tid[1000];
     //////////////////////////////////////////////////////////
-    int num_worker_threads = 4;
+    int num_worker_threads = 20;
     pthread_t workers[num_worker_threads];
     sem_init(&count_request_not_assigned, 0, 0);
     if (pthread_mutex_init(&queue_lock, NULL) != 0) {
@@ -70,8 +70,10 @@ int main(int argc, char *argv[]){
     maxHeap *mh = initMaxHeap(1000);
     printf("Max heap initialized with size = %d \n", mh->curSize);
     for(int i = 0; i< num_worker_threads; i++){
-	if( pthread_create(&workers[i++], NULL, workerThread, mh) != 0 )
+	if( pthread_create(&workers[i], NULL, workerThread, mh) != 0 )
            printf("Failed to create worker thread number %d \n", i);
+	else
+	   printf("Created worker thread number %d \n", i);
     }
     /////////////////////////////////////////////////////////////////
     int i = 0;
