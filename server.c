@@ -70,8 +70,10 @@ int main(int argc, char *argv[]){
     maxHeap *mh = initMaxHeap(1000);
     printf("Max heap initialized with size = %d \n", mh->curSize);
     for(int i = 0; i< num_worker_threads; i++){
-	if( pthread_create(&workers[i++], NULL, workerThread, mh) != 0 )
+	if( pthread_create(&workers[i], NULL, workerThread, mh) != 0 )
            printf("Failed to create worker thread number %d \n", i);
+	else
+	   printf("Created worker thread number %d \n", i);
     }
     /////////////////////////////////////////////////////////////////
     int i = 0;
