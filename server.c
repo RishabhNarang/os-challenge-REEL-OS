@@ -8,7 +8,7 @@
 #include <inttypes.h>
 #include <openssl/sha.h>
 #include <openssl/evp.h>
-#include "maxHeap.h" //max heap implementation of priority queue
+#include "maxHeap.h" //max heap implementation of priority queue , change to linkedList.h for linked list implementation
 
 // Before we turn this in for the first milestone we should ensure that we can use all these packages ////
 
