@@ -172,6 +172,8 @@ int main(int argc, char *argv[])
     // new max heap
     maxHeap mh = initMaxHeap();
     
+   
+
 
     while (1) {
 
@@ -183,7 +185,7 @@ int main(int argc, char *argv[])
         //accept the connection
         clientfd = accept(sockfd, (struct sockaddr *)&cliAddr, &len);
 	
-
+	
 
 
         /// Recieving Component ///
@@ -218,11 +220,11 @@ int main(int argc, char *argv[])
 
 
         //create new request node and insert into max heap
-
+	
         requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q , .clientfd = clientfd};         
 
         
-	insert(&mh, rn); //mh.elem[0] is request with highest priority     
+	insert(&mh, rn); //mh.elem[0] is request with highest priority    
 
 
 	/*
@@ -230,10 +232,12 @@ int main(int argc, char *argv[])
 	PrintCharArray(rn.hash, 32); 
 	printf("\n");*/
     
-      	
+
+
+
 
 	// if-statement & while-loop only for maxHeap-experiment
-	if(mh.heapSize == 1000) { 
+	if(mh.heapSize == 1) { 
 
 		printf("\n"); 
 		while(mh.heapSize > 0) { 
@@ -247,6 +251,10 @@ int main(int argc, char *argv[])
 			Process(&maxRN.hash, &maxRN.start, &maxRN.end, &result);
 
 			printf("Answer: %d \n", result);
+
+
+
+			
 
 
 			

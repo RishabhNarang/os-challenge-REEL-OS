@@ -11,12 +11,13 @@ typedef struct requestNode {
 	unsigned char hash[32];
 	uint64_t start, end;
 	uint8_t priority;
+	int clientfd;
 	struct requestNode* next, *prev;
 
 } requestNode;
 
 
-requestNode* getRequestNode(unsigned char hash[32], uint64_t start, uint64_t end, uint8_t priority) {
+requestNode* getRequestNode(unsigned char hash[32], uint64_t start, uint64_t end, uint8_t priority , int clientfd) {
 
 	// Create dynamic memory of LinkNode
 	struct requestNode* newReqNode = (requestNode*)malloc(sizeof(requestNode));
@@ -28,6 +29,7 @@ requestNode* getRequestNode(unsigned char hash[32], uint64_t start, uint64_t end
 	newReqNode->start = start;
 	newReqNode->end = end;
 	newReqNode->priority = priority;
+	newReqNode->clientfd = clientfd;
 
 	newReqNode->next = NULL;
 	newReqNode->prev = NULL;
@@ -40,6 +42,7 @@ typedef struct DoubleLinkedList {
 	// Define useful field of DoublyLinkedList
 	struct requestNode* head;
 	struct requestNode* tail;
+	int listSize;
 
 }DoubleLinkedList;
 
@@ -52,18 +55,19 @@ DoubleLinkedList* getDoubleLinkedList() {
 		// Failed to create memory 
 		return NULL;
 	}
-	// Set head and tail
+	// Set head, tail and list size
 	linkedList->head = NULL;
 	linkedList->tail = NULL;
+	linkedList->listSize = 1;
 	return linkedList;
 }
 
 
 // Function: add new requestNode to end of linked list
-void insert(DoubleLinkedList* linkedList, unsigned char hash[32], uint64_t start, uint64_t end, uint8_t priority) {
+void insert(DoubleLinkedList* linkedList, unsigned char hash[32], uint64_t start, uint64_t end, uint8_t priority, int clientfd) {
 
 	// Create a new request node
-	requestNode* rn = getRequestNode(hash, start, end, priority);
+	requestNode* rn = getRequestNode(hash, start, end, priority, clientfd);
 	if ((linkedList->head == NULL)) {
 		// Add first node
 		linkedList->head = rn;
@@ -75,6 +79,7 @@ void insert(DoubleLinkedList* linkedList, unsigned char hash[32], uint64_t start
 	linkedList->tail->next = rn;
 	rn->prev = linkedList->tail;
 	linkedList->tail = rn;
+	(linkedList->listSize)++;
 }
 
 
@@ -85,6 +90,7 @@ requestNode extractMax(DoubleLinkedList* linkedList) {
 	requestNode* nextNode, * prevNode;
 	nextNode = NULL;
 	prevNode = NULL;
+	(linkedList->listSize)--;
 
 	// Get first node of linked list
 	requestNode* temp = linkedList->head;
@@ -110,7 +116,7 @@ requestNode extractMax(DoubleLinkedList* linkedList) {
 }
 
 
-/* Print linked list
+//Print linked list
 void printLinkedList(struct requestNode* nodePtr) {
 
 	printf("Doubly Linked List\n");
@@ -120,4 +126,4 @@ void printLinkedList(struct requestNode* nodePtr) {
 		if (nodePtr != NULL)
 			printf("-><-");
 	}
-} */
+} 
