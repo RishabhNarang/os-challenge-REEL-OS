@@ -25,7 +25,7 @@ int HashCompare(const uint8_t *hash, const unsigned char *hashResult)
     */
     // i initialized to 1, instead of 0, to avoid memcpy-bug when creating
     // new requestNode
-    for (unsigned int i = 1; i < 32; i++) 
+    for (unsigned int i = 0; i < 32; i++) 
     {
         if (hash[i] != hashResult[i])
         {
@@ -169,10 +169,12 @@ int main(int argc, char *argv[])
     listen(sockfd, 5);
 
 
-    // new max heap
+    // new max heap  
     maxHeap mh = initMaxHeap();
     
-   
+    // new linked list , uncomment for linkedList implementation
+    //DoubleLinkedList* dll = getDoubleLinkedList();
+
 
 
     while (1) {
@@ -213,37 +215,30 @@ int main(int argc, char *argv[])
         start = be64toh(start);
         end = be64toh(end);
 
-	/*
-	printf("Printing hash: (before requestNode rn = { memcpy(rn.hash, h..) \n");
-	PrintCharArray(hash, 32); 
-	printf("\n");*/
-
+	
 
         //create new request node and insert into max heap
 	
-        requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q , .clientfd = clientfd};         
+        requestNode rn = { .hash = hash, .start = start, .end = end, .priority = q , .clientfd = clientfd};         
 
-        
-	insert(&mh, rn); //mh.elem[0] is request with highest priority    
+        memcpy(&rn.hash, &hash, 32);
+	insert(&mh, rn); //mh.elem[0] is request with highest priority     
 
 
-	/*
-	printf("Printing hash: (after requestNode rn = { memcpy(rn.hash, h..) \n");
-	PrintCharArray(rn.hash, 32); 
-	printf("\n");*/
-    
+	// insert new request node into linked list , uncomment for linkedList implementation
+	//insert(dll, hash, start, end, q, clientfd);
+	//memcpy(&(dll->tail->hash), &hash, 32);
 
 
 
-
-	// if-statement & while-loop only for maxHeap-experiment
-	if(mh.heapSize == 1) { 
+	// if-statement & while-loop only for experimenting
+	if(mh.heapSize == 500) { 
 
 		printf("\n"); 
 		while(mh.heapSize > 0) { 
 					
 
-			// extract request with highest priority and remove it from max-heap 	
+			// extract request with highest priority and remove it 	
 			requestNode maxRN = extractMax(&mh); 
 
 
@@ -251,10 +246,6 @@ int main(int argc, char *argv[])
 			Process(&maxRN.hash, &maxRN.start, &maxRN.end, &result);
 
 			printf("Answer: %d \n", result);
-
-
-
-			
 
 
 			
