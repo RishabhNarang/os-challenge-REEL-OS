@@ -8,9 +8,13 @@
  
 ### Priority Queue Experiment
 
-To ensure that received requests are processed according to their priorities, it was decided to integrate a priority queue into the server, so that the request with the highest priority is served first. Different data structures can be used to implement a priority queue such as a max-heap and a linked-list. In the case with our server, both data structures need to support two different operations; 1) insertion of a newly received request into the queue and 2) extraction/removal of the request with the maximum priority from the queue.
+To ensure that received requests are processed according to their priorities, it was decided to integrate a priority queue into the server, so that the request with the highest priority is served first. Different data structures can be used to implement a priority queue such as a max-heap and a linked-list. In the case with our server, both data structures need to support two different operations; 1) insertion of a newly received request into the queue and 2) extraction/removal of the request with the maximum priority from the queue. In theory, the running times of these operations are different for max heaps and linked lists. They are as follows:
 
-[a link](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Priority-Queue-Test-Branch/experiment_plot.png)
+Unsorted Linked List: INSERT in O(1) time	and EXTRACTMAX	in O(n) time. Max Heap:	INSERT in	O(log n) time and EXTRACTMAX in	O(log n) time.  
+
+The different running times of these operations would presumably also result in different average latencies for a max-heap solution and a linked-list solution and thus different scores. The purpose of this experiment is to determine if this is the case and to identify the priority queue solution which yields the lowest scores. 
+
+[Max-heap and linked-list figure](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Priority-Queue-Test-Branch/experiment_plot.png)
 
 
 ### LookUp Table Experiment
