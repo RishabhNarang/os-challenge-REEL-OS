@@ -17,6 +17,7 @@ typedef struct requestNode {
 	uint64_t start;
 	uint64_t end;
 	uint8_t priority;
+	int clientfd;
 } requestNode;
 
 

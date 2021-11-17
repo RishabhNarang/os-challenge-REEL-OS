@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
 
     #pragma region // Multi-Process related variables
 
-        const size_t MAX_PROCESS_COUNT = 100; // If this doens't work just put 100 instead (rlimit_nproc)
+        const size_t MAX_PROCESS_COUNT = 50; // If this doens't work just put 100 instead (rlimit_nproc)
         current_process_count = mmap(NULL, sizeof(size_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS , -1, 0);
         *current_process_count = 0;
 
@@ -109,34 +109,20 @@ int main(int argc, char *argv[]){
             node.start = be64toh(start);
             node.end = be64toh(end);
             node.priority = be64toh(priority);
-
+            node.clientfd = clientfd;
             // printf("Message recieved -> \n");
             // printf("Start: %ld End: %ld \n Hash: \n", node.start, node.end);
             // PrintCharArray(node.hash, 32);
             // printf("\n");
-
+            
+            //printf("Received Clientfd %i, count: %ld\n", clientfd, messsageCount);
             insert(&request_queue, node);
         }
         
         if(*current_process_count < MAX_PROCESS_COUNT && request_queue.heapSize > 0){
             //printf("Child number {%d} \n", *current_process_count);
-            ForkChild(&request_queue, clientfd);
+            ForkChild(&request_queue, clientfd, messsageCount);
             *current_process_count += 1;
-        }else{
-            //printf("Max child count met\n");
-            int child_status;
-            //waitpid(pd, &child_status, 0);
-            wait(&child_status);
-
-            //printf("Child finished with status {%i}\n", child_status);
-
-            if(child_status == -1)
-                printf("Child returned with an error");
-                continue;
-
-            ForkChild(&request_queue, clientfd);
-            *current_process_count += 1;
-            // Run fork again and other process
         }
         // || Is it possible to make a check so we can properly exit this loop and close the socket? || //
     }
@@ -145,10 +131,11 @@ int main(int argc, char *argv[]){
 }
 
 /// Forks and creates a child ///
-void ForkChild(struct maxHeap *request_queue, int clientfd){
+void ForkChild(struct maxHeap *request_queue, int clientfd, int messsageCount){
     //printf("Child was created \n");
     
     requestNode currentRequest = extractMax(request_queue);
+    //printf("Sending Clientfd %i, count: %ld\n", clientfd, messsageCount);
 
     pid_t pd = fork();
 
@@ -159,7 +146,7 @@ void ForkChild(struct maxHeap *request_queue, int clientfd){
     }else if(pd == 0){
         // The entire child process
 
-        clock_t start = clock();
+        // clock_t start = clock();
         /*Do something*/
         
 
@@ -176,18 +163,19 @@ void ForkChild(struct maxHeap *request_queue, int clientfd){
         leresult = result;
         result = htobe64(result);
 
-        int sendBytes = send(clientfd, &result, sizeof(result), 0);
+        int sendBytes = send(currentRequest.clientfd, &result, sizeof(result), 0);
         if(sendBytes == -1)
             printf("Send failed \n");
 
         
-        clock_t end = clock();
-        float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+        // clock_t end = clock();
+        // float seconds = (float)(end - start) / CLOCKS_PER_SEC;
 
-        printf("Message sent: Elasped Time: %d  Result: %"PRId64"\n", seconds, leresult);
-
+        //printf("Message sent: Elasped Time: %d  Result: %"PRId64"\n", seconds, leresult);
+        //printf("message count: %d\n", messsageCount);
         *current_process_count -= 1;
         //printf("Child number {%d} \n", *current_process_count);
+        printf("Child has died\n");
         exit(0);
     }else{
         // Parents code, do nothing
