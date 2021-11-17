@@ -57,12 +57,14 @@ char *strdup(char *s) /* make a duplicate of s */
     return p;
 }
 
+/*
 void main(){
     unsigned char name[] = "test";
     int x = 20;
-    /*char defn[] = "test1";*/
-    char *val = &x;
+    char defn[] = "test1";
+    char *val = &x +'0';
     install(name,val);
     struct nlist *res= lookup("test");
     printf("%s %s",res->name,res->defn);
 }
+*/
