@@ -11,23 +11,19 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "dictionary.h"
-#include "maxHeapTest.h" //max heap implementation of priority queue
-
-// Before we turn this in for the first milestone we should ensure that we can use all these packages ////
-
+#include "maxHeap.h" //max heap implementation of priority queue
 
 // Note compile on the linux sever
 // Assumption that we are using openssl 1.1.1
 #define SERVER "REEL-OS"
 
 
-sem_t count_request_not_assigned;
-pthread_mutex_t queue_lock, dictionary_lock;
-struct nlist *hashtab[HASHSIZE];
-//maxHeap mh = initMaxHeap();
+sem_t count_request_not_assigned;//This is number of requests available to be taken up by a worker thread
+pthread_mutex_t queue_lock, dictionary_lock; // Mutex locks for dictionary and priority queue
+struct nlist *hashtab[HASHSIZE]; // hash table for lookups
 
-void * socketThread(void *arg);
 void * workerThread(void *arg);
+
 int main(int argc, char *argv[]){
 
     unsigned int port;
@@ -60,11 +56,14 @@ int main(int argc, char *argv[]){
 
     // listen
     listen(sockfd, 1000);
-    pthread_t tid[1000];
-    //////////////////////////////////////////////////////////
+    
+    //number of worker threads for processing incoming requests
     int num_worker_threads = 4;
+
     pthread_t workers[num_worker_threads];
+    
     sem_init(&count_request_not_assigned, 0, 0);
+
     if (pthread_mutex_init(&queue_lock, NULL) != 0) {
     	printf("\n queue mutex init has failed\n");
         return 1;
@@ -74,20 +73,17 @@ int main(int argc, char *argv[]){
         return 1;
     }
     maxHeap *mh = initMaxHeap(1000);
-    //printf("Max heap initialized with size = %d \n", mh->curSize);
+    
+    //Create worker threads
     for(int i = 0; i< num_worker_threads; i++){
 	if( pthread_create(&workers[i], NULL, workerThread, mh) != 0 )
            printf("Failed to create worker thread number %d \n", i);
 	else
 	   printf("Created worker thread number %d \n", i);
     }
-    /////////////////////////////////////////////////////////////////
     int i = 0;
-    //printf("Entering the main while loop \n");
     while (1)
     {
-
-
         int clientfd;
         struct sockaddr_in client_addr;
         socklen_t client_addr_len = sizeof(struct sockaddr_in);
@@ -106,22 +102,22 @@ int main(int argc, char *argv[]){
 
 	 // -1 is error message
         int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-        /*printf("Bytes Recieved: %d\n", count);*/
+      
 
-        // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
         unsigned char hash[32];
         uint64_t start, end;
         uint8_t q;
 
         memcpy(&hash, &(recievedMessage[0]), 32);
-	///////////////////////////////////////
+
+	//Check if the hash already exists in dictionary
 	uint64_t result = 0;
     	struct nlist* record;
-    	pthread_mutex_lock(&dictionary_lock);
+    	pthread_mutex_lock(&dictionary_lock); //lock the dictionary for lookup
     	record = lookup(hashtab,hash);
     	if(record !=0){
+	    //hash exists in dictionary
     	    result = record->result;
-    	    printf("Successful lookup with val %" PRIu64 "\n",result);
     	}
     	pthread_mutex_unlock(&dictionary_lock);
     	if(result != 0)
@@ -134,7 +130,6 @@ int main(int argc, char *argv[]){
     	    }
     	    
 	    close(clientfd);
-	    printf("Not adding request to queue\n");
 	    continue;
 	}
 	
@@ -142,61 +137,21 @@ int main(int argc, char *argv[]){
         memcpy(&end, &(recievedMessage[40]), 8);
         memcpy(&q, &(recievedMessage[48]), 1);
 
-
-        /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
-            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
-
-     //	printf("\n \n Got a new request on main thread: \n");
-        //PrintArray(hash, 32);
-        //be64tohArray(hash, 32);
-
-       // printf("Printing hash: \n");
-        //PrintCharArray(hash, 32);
-
         start = be64toh(start);
         end = be64toh(end);
 
-    	//printf("Start value: %" PRIu64 "\n", start);
-    	//printf("End value: %" PRIu64 "\n", end);
-    	//printf("Priority: %d\n", q);
-
-	//printf("Serving the request with i = %d \n",i);
-	int* clientFdPtr = (int*)malloc(sizeof(int));
-	*clientFdPtr = clientfd;
+	//Create reqest node for priority queue
 	requestNode *rn = (requestNode *)malloc(sizeof(requestNode));
 	memcpy(&(rn->hash), &hash, 32);
 	rn->start = start;
 	rn->end = end;
 	rn->priority = q;
 	rn->clientfd = clientfd;	
-	//requestNode rn = { memcpy(&rn.hash, &hash, 32), .start = start, .end = end, .priority = q, .clientfd = *clientFdPtr};
 
-	//printf("\n \n Created requestNode on main thread: \n");
-        //PrintArray(hash, 32);
-        //be64tohArray(hash, 32);
-
-        //printf("Printing hash: \n");
-        //PrintCharArray(rn->hash, 32);
-
-        //printf("Start value: %" PRIu64 "\n", rn->start);
-        //printf("End value: %" PRIu64 "\n", rn->end);
-        printf("Priority: %d\n", rn->priority);
-
-	pthread_mutex_lock(&queue_lock);
+	pthread_mutex_lock(&queue_lock); //lock the queue before inserting
 	insert(mh, *rn);
-	printf("Inserted!. Heapsize is %d \n",mh->curSize);
 	pthread_mutex_unlock(&queue_lock);
-	sem_post(&count_request_not_assigned);
-	//if( i >= 100)
-        //{
-          //i = 0;
-          //while(i < 100)
-          //{
-            //pthread_join(tid[i++],NULL);
-          //}
-          //i = 0;
-        //}
-
+	sem_post(&count_request_not_assigned); // signal available free threads to take a request
     }
 
     close(sockfd);
@@ -205,128 +160,33 @@ int main(int argc, char *argv[]){
 
 void * workerThread(void *arg)
 {
-    //printf("worker thread entered \n");
     maxHeap *mh = (maxHeap *)arg;
-    //printf("got the maxheap \n");
     while(1){
 	sem_wait(&count_request_not_assigned);
-    	//printf("Inside worker thread trying to get a request from queue\n");
-    	//recv(newSocket , client_message , 2000 , 0);
-    	// Send message to the client socket
-
-    	/////////////////////////////////////////////////////////////////////////////////////////
+    	
 	pthread_mutex_lock(&queue_lock);
-	//printf("The queue element is  %d \n,",mh->heap[0].priority);
 	requestNode *request = extractMax(mh);
-	printf("Extracted from queue. Heapsize is %d\n", mh->curSize);
-	//printf("The extracted hash value is \n,");
-	//PrintCharArray(request->hash,32);
-        //printf("The extracted start value is %" PRIu64 "\n",request->start);
-        //printf("The extracted end value is  %" PRIu64 "\n",request->end);
-        //printf("The extracted priority value is  %d \n,",request->priority);
-	//printf("The extracted clientfd value is %d \n",request->clientfd);
 	pthread_mutex_unlock(&queue_lock);
 	int clientfd = request->clientfd;
     	uint64_t result;
+	//Process the request
     	Process(request->hash, &(request->start), &(request->end), &result);
+
+	//insert the result into dictionary
 	pthread_mutex_lock(&dictionary_lock);
         install(hashtab,request->hash,result);
         pthread_mutex_unlock(&dictionary_lock);
-    	//printf("\t\b\b Answer: %d \n", result);
 
-    	// Switch from little endian to big endian for network
     	result = htobe64(result);
-    	// Send message to client
+    	// Send result to client
     	int bytes_sent = send(clientfd, &result, sizeof(result), 0);
     	if(bytes_sent < 0){
             printf("Failed to send the result to fd = %d \n", clientfd);
     	}
-    	///////////////////////////////////////////////////////////////////////////////////////
-
-
-    	//printf("Finished the thread for fd = %d \n",clientfd);
-    	//send(newSocket,buffer,13,0);
-    	//printf("Exit socketThread \n");
-    	close(clientfd);
-    	//pthread_exit(NULL); 
+    	close(clientfd); 
     }
 }
 
-void * socketThread(void *arg)
-{
-    int clientfd = *((int *)arg);
-    printf("Inside the thread for fd = %d \n",clientfd);
-    //recv(newSocket , client_message , 2000 , 0);
-    // Send message to the client socket
-
-    /////////////////////////////////////////////////////////////////////////////////////////
-    /// Recieving Component ///
-    char recievedMessage[49];
-
-    // -1 is error message
-    int count = recv(clientfd, &recievedMessage, sizeof(recievedMessage), MSG_WAITALL);
-    if(count == 0)
-    {
-	printf("Client disconnected with fd = %d \n", clientfd);
-    }
-    else if(count == -1)
-    {
-	printf("recv failed with fd = %d \n", clientfd);
-    }
-    /*printf("Bytes Recieved: %d\n", count);*/
-
-    // uint8_t is a single byte size integer, therefore since out message is 32 bytes long we need to set hash array to 32
-    unsigned char hash[32];
-    uint64_t start, end;
-    uint8_t q;
-
-    memcpy(&hash, &(recievedMessage[0]), 32);
-    memcpy(&start, &(recievedMessage[32]), 8);
-    memcpy(&end, &(recievedMessage[40]), 8);
-    memcpy(&q, &(recievedMessage[48]), 1);
-
-
-    /* --- The hash doesn't have to be swapped in byte order since the hashing done by openssl will return in the same
-            byte order as network byte order, I will keep the function to swap byte order of array if the need arises --- */
-    //printf("\n \n got request hash on main as : \n");
-    //PrintArray(hash, 32);
-
-    //PrintArray(hash, 32);
-    //be64tohArray(hash, 32);
-
-    //printf("Printing hash: \n");
-    //PrintCharArray(hash, 32);
-
-    start = be64toh(start);
-    end = be64toh(end);
-
-    //printf("Start value: %" PRIu64 "\n", start);
-    //printf("End value: %" PRIu64 "\n", end);
-    //printf("Priority: %d\n", q);
-
-    uint64_t result;
-    Process(hash, &start, &end, &result);
-
-    //printf("\t\b\b Answer: %d \n", result);
-
-    // Switch from little endian to big endian for network
-    result = htobe64(result);
-
-
-    // Send message to client
-    int bytes_sent = send(clientfd, &result, sizeof(result), 0);
-    if(bytes_sent < 0){
-	printf("Failed to send the result to fd = %d \n", clientfd);
-    }
-    ///////////////////////////////////////////////////////////////////////////////////////
-
-
-    printf("Finished the thread for fd = %d \n",clientfd);
-    //send(newSocket,buffer,13,0);
-    //printf("Exit socketThread \n");
-    close(clientfd);
-    pthread_exit(NULL);
-}
 void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, uint64_t *result)
 {
 
@@ -351,11 +211,6 @@ void Process(const uint8_t *hash, const uint64_t *start, const uint64_t *end, ui
                 5: Just keep at NULL (it changed the engine implementation I believe)
         */
         EVP_Digest(&i, sizeof(i), md_value, &md_len, md, NULL);
-
-        // printf("Digest is: ");
-        // for (unsigned int k = 0; k < md_len; k++)
-        //     printf("%02x", md_value[k]);
-        // printf("\n");
 
         // Compare hashResult and recieved hash
         if (HashCompare(hash, md_value) == 0)
@@ -399,7 +254,6 @@ void be64tohArray(uint8_t *arr, size_t len)
 void PrintArray(const uint8_t *arr, const size_t len)
 {
     // Prints out uint8_t array
-    // Could be made generic but idk how to do that in C  - Erik Priest
     for (unsigned int i = 0; i < len; i++)
     {
         printf("%02x", arr[i]);
