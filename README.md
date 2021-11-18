@@ -45,6 +45,10 @@ View the repository [here](https://github.com/SirEsquireGoatTheThird/os-challeng
  
 
 ### Multi-threading Experiment
+
+This experiment is done to improve the performance of the sequential processing of the requests. So we have considered using priority and/or dictionary along with multithreading to improve the performance. Each of the three sub-experiments have been documented below for more explanation:
+
+
 1. Multiple threads
 
 In order to speed up the processing of the incoming requests, threads (pthread library) have been used for each incoming request. So for the milestone, with 100 requests coming in, 100 threads was generated. As soon as a request comes in, the main thread creates a new thread that handles the processing of that request. There is no synchronization between the threads and each of them share the 4CPUs from the VM. 
@@ -68,7 +72,7 @@ Tests were conducted for 4,10 and 20 worker threads.
 View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading-with-pq-and-dict)
 
 
-Following is a plot comparing the results obtained from multithreading with Heaps&Dict vs just using the Heap. As expected, the performance improved when using Dict as well since some of the duplicated threads will be processed much faster since it's just a lookup from the dictionary instead of brute forcing the hash values.
+Following is a plot comparing the results obtained from multithreading with Heaps&Dict vs just using the Heap. As expected, the performance improved when using Dict as well since some of the duplicated threads will be processed much faster since it's just a lookup from the dictionary instead of brute forcing the hash values. So we have chosen to go with multithreading with priority queue and dictionary for the final version.
 
 ![](/MultiThreading-Exp.png)
  
