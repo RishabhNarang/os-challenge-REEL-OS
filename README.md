@@ -55,6 +55,9 @@ Tests were conducted for 4,10 and 20 worker threads.
         
 View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading-with-pq-and-dict)
 
+
+Following is a plot comparing the results obtained from multithreading with Heaps&Dict vs just using the Heap. As expected, the performance improved when using Dict as well since some of the duplicated threads will be processed much faster since it's just a lookup from the dictionary instead of brute forcing the hash values.
+
 ![](/MultiThreading-Exp.png)
  
 ## Final Server 
