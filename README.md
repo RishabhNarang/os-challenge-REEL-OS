@@ -37,6 +37,7 @@ With this experiment I tested if multi-processing would speed up the calculation
         In order to speed up the processing of the incoming requests, threads (pthread library) have been used for each incoming request. So for the milestone, with 100 requests coming in, 100 threads was generated. As soon as a request comes in, the main thread creates a new thread that handles the processing of that request. There is no synchronization between the threads and each of them share the 4CPUs from the VM. 
         
 View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading)
+
 2. Threads with priority queue
         Since the requests with a higher priority needs to be processed first, a max-heap implementation was used to maintain a queue of requests coming in. And instead of spawning a new thread as soon as it comes in, we have X number of worker threads waiting to fetch requests from the priority queue. This way we ensure that the higher priority requests will be extracted before the lower priority requests. Semaphores are used as signalling method so that any free worker threads can pickup a request from the queue and mutex is used for mutual exclusion between threads(only when inserting and extracting requests in the queue).
         
