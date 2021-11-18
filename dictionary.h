@@ -4,14 +4,13 @@
 
 struct nlist { /* table entry: */
     struct nlist *next; /* next entry in chain */
-    unsigned char hash[32]; /* defined name */
-    uint64_t result; /* replacement text */
+    unsigned char hash[32]; /* hash key */
+    uint64_t result; /* result value */
 };
 
 #define HASHSIZE 1001
-//static struct nlist *hashtab[HASHSIZE];
 
-/* hash: form hash value for string s */
+/* hash: form hash value for unsigned char string s */
 unsigned hash_fn(unsigned char s[])
 {
     unsigned hashval = 0;

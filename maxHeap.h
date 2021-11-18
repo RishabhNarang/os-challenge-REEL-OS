@@ -1,98 +1,90 @@
+// Max-Heap data structure in C
 
 #include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
-#include <malloc.h>
-
-
-#define LEFT(n) 2*n + 1
-#define RIGHT(n) 2*n + 2
-#define PARENT(n) (n-1)/2
-
-
 typedef struct requestNode {
-	unsigned char hash[32];
-	uint64_t start;
-	uint64_t end;
-	uint8_t priority;
+        unsigned char hash[32];
+        uint64_t start;
+        uint64_t end;
+        uint8_t priority;
+        int clientfd;
 } requestNode;
 
 
 typedef struct maxHeap {
-	int heapSize;
-	requestNode* elem;
+        int curSize;
+	int maxSize;
+        requestNode* heap;
 } maxHeap;
 
 
 // Function: initialize new max heap with size = 0
-maxHeap initMaxHeap() {
-	maxHeap hp;
-	hp.heapSize = 0;
-	return hp;
+maxHeap * initMaxHeap(int maxSize) {
+        maxHeap *hp = (maxHeap *)malloc(sizeof(maxHeap));
+	hp->maxSize = maxSize;
+        hp->curSize = 0;
+	hp->heap = (requestNode *)malloc(sizeof(requestNode) * maxSize);
+        return hp;
 }
-
-
-// Function: insert new requestnode into maxheap
-void insert(maxHeap* mh, requestNode rn) {
-
-	// allocating memory
-	if (mh->heapSize) {
-		mh->elem = (requestNode *)realloc(mh->elem, (mh->heapSize + 1) * sizeof(rn));
-	}
-	else {
-		mh->elem = (requestNode *)malloc(sizeof(rn));
-	}
-
-	// Heapify to ensure max-heap property is satisfied
-	int i = (mh->heapSize)++;
-	while (i && rn.priority > mh->elem[PARENT(i)].priority) {
-		mh->elem[i] = mh->elem[PARENT(i)];
-		i = PARENT(i);
-	}
-	mh->elem[i] = rn;
+void swap(requestNode *a, requestNode *b)
+{
+  requestNode temp = *b;
+  *b = *a;
+  *a = temp;
 }
-
-
-// Function: swap data of two request nodes
-void swap(requestNode* rn1, requestNode* rn2) {
-	requestNode temp = *rn1;
-	*rn1 = *rn2;
-	*rn2 = temp;
+void heapify(maxHeap * hp, int size, int i)
+{
+  if (size == 1)
+  {
+    printf("Single element in the heap");
+  }
+  else
+  {
+    int largest = i;
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
+    if (l < size && hp->heap[l].priority > hp->heap[largest].priority)
+      largest = l;
+    if (r < size && hp->heap[r].priority > hp->heap[largest].priority)
+      largest = r;
+    if (largest != i)
+    {
+      swap(&(hp->heap[i]), &(hp->heap[largest]));
+      heapify(hp, size, largest);
+    }
+  }
 }
-
-
-// Function: heapify to ensure max-heap property is satisied
-void heapify(maxHeap* mh, int i) {
-
-	int largest = (LEFT(i) < mh->heapSize && mh->elem[LEFT(i)].priority > mh->elem[i].priority) ? LEFT(i) : i;
-	if (RIGHT(i) < mh->heapSize && mh->elem[RIGHT(i)].priority > mh->elem[largest].priority) {
-		largest = RIGHT(i);
-	}
-	if (largest != i) {
-		swap(&(mh->elem[i]), &(mh->elem[largest]));
-		heapify(mh, largest);
-	}
+void insert(maxHeap * hp, requestNode rq)
+{
+  if (hp->curSize == 0)
+  {
+    hp->heap[0] = rq;
+    hp->curSize += 1;
+  }
+  else
+  {
+    hp->heap[hp->curSize] = rq;
+    hp->curSize += 1;
+    for (int i = (hp->curSize) / 2 - 1; i >= 0; i--)
+    {
+      heapify(hp, hp->curSize, i);
+    }
+  }
 }
-
-
-// Function: extract requestNode with highest priority and remove it from heap
-requestNode extractMax(maxHeap* mh) {
-
-	requestNode maxRN = mh->elem[0];
-	mh->elem[0] = mh->elem[--(mh->heapSize)];
-	mh->elem = (requestNode *)realloc(mh->elem, mh->heapSize * sizeof(requestNode));
-	heapify(mh, 0);
-		
-	return maxRN;
+requestNode *extractMax(maxHeap *hp)
+{
+  requestNode * max = (requestNode *)malloc(sizeof(requestNode));
+  *max = hp->heap[0];
+  swap(&(hp->heap[0]), &(hp->heap[hp->curSize - 1]));
+  hp->curSize -= 1;
+  for (int i = (hp->curSize) / 2 - 1; i >= 0; i--)
+  {
+    heapify(hp, hp->curSize, i);
+  }
+  return max;
 }
-
-void printPriorities(maxHeap* mh) {
-
-	printf("Heap priorities: ");
-	
-	for(int i=0; i<30; i++) {
-		printf("%d ", mh->elem[i].priority);
-	}
-
+void printPriorities(maxHeap * hp)
+{
+  for (int i = 0; i < hp->curSize; i++)
+    printf("%d ", hp->heap[i].priority);
+  printf("\n");
 }
-
