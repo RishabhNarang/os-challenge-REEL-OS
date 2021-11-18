@@ -26,6 +26,8 @@ INSERT/EXTRACTMAX operations grows with the number of requests, since O(logn)+O(
 
 ### LookUp Table Experiment
 
+For this experiment I made a dictionary with a lookup function. This allows the program to fetch the hashes if they were already calculated, if the hash doesnt exist then it calculate it and stores it in the dictionary. The more hashes the program has to calculate, the more efficient this experiment is. 
+
 ### Multi-processing Experiment - Erik Priest
 With this experiment I tested if multi-processing would speed up the calculation of the hash for the server. I tested with various number of child processes such as 10, and 100. I found that it reliably passed the run_client.sh and run_client_milestone.sh however, it would slow to a crawl on run_client_final.sh possibly due to the max number of child processes being 100. The multi-processing relies on the server loop of obtaining a message -> adding to priority queue -> create child process if max is not met -> creates child process to handle request -> server repeats. In the child, it processes the request and then sends the message, once sent it dies. 
  
