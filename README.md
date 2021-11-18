@@ -79,3 +79,5 @@ As we increase the number of threads, the performace seem to decline as well. Th
 ![](/MultiThreading-Exp.png)
  
 ## Final Server 
+
+The final server includes multithreading with the use of max heap and dictionary which gave us the best performance in all of our experiments. 
