@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 
     #pragma region // Multi-Process related variables
 
-        const size_t MAX_PROCESS_COUNT = 50; // If this doens't work just put 100 instead (rlimit_nproc)
+        const size_t MAX_PROCESS_COUNT = 100; // If this doens't work just put 100 instead (rlimit_nproc)
         current_process_count = mmap(NULL, sizeof(size_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS , -1, 0);
         *current_process_count = 0;
 
@@ -122,7 +122,12 @@ int main(int argc, char *argv[]){
             //printf("Child number {%d} \n", *current_process_count);
             ForkChild(&request_queue, clientfd, messsageCount);
             *current_process_count += 1;
+        }else if(request_queue.heapSize > 0){
+            wait();
+            ForkChild(&request_queue, clientfd, messsageCount);
+            *current_process_count += 1;
         }
+        //printf("Child number {%d} \n", *current_process_count);
         // || Is it possible to make a check so we can properly exit this loop and close the socket? || //
     }
     close(sockfd);

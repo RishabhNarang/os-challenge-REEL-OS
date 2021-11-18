@@ -2,19 +2,24 @@ Server Test runs:
 
 Child = 10
 
-run_client = 
-run_client_milestone = 
+run_client = 15663ns
+run_client_milestone = 86201271ns
 
 
 Child = 50
 
 
-run_client = 
-run_client_milestone = 
+run_client = 12755ns
+run_client_milestone = 61630955ns
 
 
 Child = 100
 
 
-run_client = 
-run_client_milestone = 
+run_client = 13630ns
+run_client_milestone = 63269165ns
+
+Milestone Submission server tests:
+
+run_client = 3069ns
+run_client_milestone = Connection timed out
