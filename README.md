@@ -20,7 +20,7 @@ In both cases, the same number of requests were sent: [2, 5, 10, 100, 200, 300, 
 
 Both implementations yielded 100% reliability. The scores are: [Max-heap and linked-list figure](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Priority-Queue-Test-Branch/experiment_plot.png)
 
-[Experiment code](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/Priority-Queue-Test-Branch)
+Priority-Queue-Test-Branch: [Experiment code](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/Priority-Queue-Test-Branch)
 
 Scores for the max-heap and linked-list are much higher than the baseline server, since all requests are gathered in the queue before being processed one-by-one resulting in higher latencies, which grows with the number of pending requests in the queue, whereas the baseline server processes each request as soon as it is received. The max-heap/linked-list plot shows no discernible difference in scores between the two implementations which is not quite as expected. For a small number of requests, say 5 or 10, the difference in scoring should not be noticeable, which is also the case. However, in theory the max-heap should be faster than the linked-list as the number of performed 
 INSERT/EXTRACTMAX operations grows with the number of requests, since O(logn)+O(logn)=O(logn) is asymptotically faster than O(n)+O(1)=O(n). In conclusion, the experiment does not determine which of the proposed solutions - a max-heap or a linked-list - is the best for implementing a priority queue for the server, because the scores are so similar. A max-heap solution was adopted though.
