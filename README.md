@@ -31,6 +31,23 @@ With this experiment I tested if multi-processing would speed up the calculation
  
 
 ### Multi-threading Experiment
+    1. Multiple threads
+        In order to speed up the processing of the incoming requests, threads (pthread library) have been used for each incoming request. So for the milestone, with 100 requests coming in, 100 threads was generated. As soon as a request comes in, the main thread creates a new thread that handles the processing of that request. There is no synchronization between the threads and each of them share the 4CPUs from the VM. 
+        
+        View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading)
+    2. Threads with priority queue
+        Since the requests with a higher priority needs to be processed first, a max-heap implementation was used to maintain a queue of requests coming in. And instead of spawning a new thread as soon as it comes in, we have X number of worker threads waiting to fetch requests from the priority queue. This way we ensure that the higher priority requests will be extracted before the lower priority requests. Semaphores are used as signalling method so that any free worker threads can pickup a request from the queue and mutex is used for mutual exclusion between threads(only when inserting and extracting requests in the queue).
+        
+        Tests were conducted for 4,10 and 20 worker threads. 
+        
+        View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading-with-pq)
+        
+    3. Threads with priority queue and dictionary
+        Further improvements were maded by adding a dictionary to the 'threads with priority queue' implementation. Before signalling any of the worker threads that a new request has been added to the queue, the main thread checks if the dictionary already has the result stored in it. If it already exists, then immediately return the result to client and not add it to the priority queue. Otherwise, it is added to the priority queue and one of the worker threads will eventually pick it up. Same synchronization and mutextes technique were used in this experiment as well. 
+        
+        Tests were conducted for 4,10 and 20 worker threads. 
+        
+        View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading-with-pq-and-dict)
 
  
 ## Final Server 
