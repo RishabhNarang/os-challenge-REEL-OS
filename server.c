@@ -10,7 +10,6 @@
 #include <openssl/evp.h>
 #include <sys/mman.h>
 #include "maxHeap.h"
-#include "queue.h"
 
 #define SERVER "REEL-OS"
 
