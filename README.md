@@ -74,6 +74,8 @@ View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL
 
 Following is a plot comparing the results obtained from multithreading with Heaps&Dict vs just using the Heap. As expected, the performance improved when using Dict as well since some of the duplicated threads will be processed much faster since it's just a lookup from the dictionary instead of brute forcing the hash values. So we have chosen to go with multithreading with priority queue and dictionary for the final version.
 
+As we increase the number of threads, the performace seem to decline as well. This could be because with more number of threads, the CPU% that each thread gets will be less and the higher priority requests will increase the resultant score. Also the true parallelism we can get is 4 threads since the Vms are assigned 4 CPUs only, so we have chosen to go with 4 worker threads.
+
 ![](/MultiThreading-Exp.png)
  
 ## Final Server 
