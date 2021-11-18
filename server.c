@@ -174,7 +174,7 @@ void ForkChild(struct maxHeap *request_queue, int clientfd, int messsageCount){
         //printf("message count: %d\n", messsageCount);
         *current_process_count -= 1;
         //printf("Child number {%d} \n", *current_process_count);
-        printf("Child has died\n");
+        //printf("Child has died\n");
         exit(0);
     }else{
         // Parents code, do nothing
