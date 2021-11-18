@@ -46,7 +46,7 @@ View the repository [here](https://github.com/SirEsquireGoatTheThird/os-challeng
 
 ### Multi-threading Experiment
 
-This experiment is done to improve the performance of the sequential processing of the requests. So we have considered using priority and/or dictionary along with multithreading to improve the performance. Each of the three sub-experiments have been documented below for more explanation:
+This experiment is done to improve the performance of the sequential processing of the requests. So we have considered using priority and/or dictionary along with multithreading to improve the performance. For the below sub-experiments, we have used the configuration of 'run-client-milestone.sh'. Each of the three sub-experiments have been documented below for more explanation:
 
 
 1. Multiple threads
