@@ -54,5 +54,7 @@ Further improvements were maded by adding a dictionary to the 'threads with prio
 Tests were conducted for 4,10 and 20 worker threads. 
         
 View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-threading-with-pq-and-dict)
+
+![](/MultiThreading-Exp.png)
  
 ## Final Server 
