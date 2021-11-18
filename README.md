@@ -31,16 +31,17 @@ INSERT/EXTRACTMAX operations grows with the number of requests, since O(logn)+O(
 For this experiment I made a dictionary with a lookup function. This allows the program to fetch the hashes if they were already calculated, if the hash doesnt exist then it calculate it and stores it in the dictionary. The more hashes the program has to calculate, the more efficient this experiment is. 
 
 ### Multi-processing Experiment - Erik Priest
-With this experiment I tested if multi-processing, through the creation of child processes to handle client requests would speed up the performance of the server. With our initial server implmentation for the milestone we ran into issues of our server timing out due to the server being to slow at processing requests. 
+With this experiment I tested if multi-processing, through the creation of child processes to handle client requests would speed up the performance of the server. With our initial server implmentation we ran into issues of our server timing out due to the server performance. 
 
 The multi-processing solution I came up with relies on the following loop.
 ![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/da257b7330feda6a79d84d536ffa277da7a0a036/multi-processing-diagram.png "Multi-processing diagram")
 
-I tested with various number of child processes such as 10, and 100. I found that it reliably passed the run_client.sh and run_client_milestone.sh however, it would slow to a crawl on run_client_final.sh with 100 child processes possibly due to limited resources. 
+I tested with various number of child processes such as 10, 50, and 100. I found that it reliably passed the run_client.sh and run_client_milestone.sh. Given the following data I found that our multiprocessing ran best at 50 max child processes on the server. Although the multiprocessing performed worst than the milestone server implementation because of the overhead with creating child processes I still believe it was the better choice for large and difficult processing requests. 
 
-// Insert image of tests here 
+![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/dc693c2d8f3a05d20a0c1dda9514f6a542f40052/ClientPeformance.PNG "Client Score")
+![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/dc693c2d8f3a05d20a0c1dda9514f6a542f40052/MilestonePerformance.PNG "Client Milestone Score")
 
-View the code [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-processing---Erik-Priest-experiment)
+View the repository [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-processing---Erik-Priest-experiment)
  
 
 ### Multi-threading Experiment
