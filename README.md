@@ -30,7 +30,7 @@ INSERT/EXTRACTMAX operations grows with the number of requests, since O(logn)+O(
 
 For this experiment I made a dictionary with a lookup function. This allows the program to fetch the hashes if they were already calculated, if the hash doesnt exist then it calculate it and stores it in the dictionary. The more hashes the program has to calculate, the more efficient this experiment is. 
 
-[Lookup Table figure](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Elias-Adawi-Branch/LookupTable.jpg)
+![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Elias-Adawi-Branch/LookupTable.jpg)
 
 ### Multi-processing Experiment - Erik Priest
 With this experiment I tested if multi-processing, through the creation of child processes to handle client requests would speed up the performance of the server. With our initial server implmentation we ran into issues of our server timing out due to the server performance. 
