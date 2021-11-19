@@ -47,7 +47,7 @@ I tested with various number of child processes such as 10, 50, and 100. I found
 ![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/dc693c2d8f3a05d20a0c1dda9514f6a542f40052/ClientPeformance.PNG "Client Score")
 ![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/dc693c2d8f3a05d20a0c1dda9514f6a542f40052/MilestonePerformance.PNG "Client Milestone Score")
 
-View the repository [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-processing---Erik-Priest-experiment)
+View the repository of the experiment [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/multi-processing---Erik-Priest-experiment)
  
 
 ### Multi-threading Experiment
