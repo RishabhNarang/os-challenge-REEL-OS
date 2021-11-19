@@ -1,7 +1,26 @@
 # REEL-OS
 
- Here we present our experiments and the final solution. 
- Also, describe the folder structure and branch structure
+## Overview - Repository Branches
+
+Basically, the repository was organized in such a way that a new branch was created for each experiment or whenever a new functionalty of the server, such as a dictionary, needed to be implemented, tested and it's performance evaluated. The repository branches are:
+
+ - Elias-Adawi-Branch: created for the LookUp table experiment
+
+ - Priority-Queue-Test-Branch: created for the Priority Queue experiment
+
+ - milestone: the branch containing the baseline/milestone server
+
+ - multi-processing---Erik-Priest_experiment: created for the multi-processing experiment
+
+ - multi-threading: created for the multi-threading experiment
+
+ - multi-threading-with-pq: created for testing a server implementing multi-threading and a 
+                            priority queue
+
+ - multi-threading-with-pq-and-dict: created for testing a server implementing multi-threading, a 
+                                     priority queue and a dictionary
+
+ - test-openssl: created for testing the openssl library
 
 
 ## Experiments
