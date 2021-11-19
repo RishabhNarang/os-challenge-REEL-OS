@@ -32,6 +32,10 @@ For this experiment I made a dictionary with a lookup function. This allows the 
 
 ![alt text](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/blob/Elias-Adawi-Branch/LookupTable.JPG)
 
+Over 1000 hashes the experiment proves to do a good decrease in score so this experiment is a sucess.
+
+View the repository [here](https://github.com/SirEsquireGoatTheThird/os-challenge-REEL-OS/tree/Elias-Adawi-Branch)
+
 ### Multi-processing Experiment - Erik Priest
 With this experiment I tested if multi-processing, through the creation of child processes to handle client requests would speed up the performance of the server. With our initial server implmentation we ran into issues of our server timing out due to the server performance. 
 
